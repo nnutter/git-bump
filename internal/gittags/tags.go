@@ -15,8 +15,12 @@ import (
 )
 
 // Open opens the repository at path.
+//
+// Linked worktrees (.git file plus commondir pointer) are resolved
+// through the shared directory so HEAD, tags, and remotes behave as
+// they do under the git CLI.
 func Open(path string) (*git.Repository, error) {
-	repo, err := git.PlainOpen(path)
+	repo, err := git.PlainOpenWithOptions(path, &git.PlainOpenOptions{EnableDotGitCommonDir: true})
 	if err != nil {
 		return nil, fmt.Errorf("open git repository: %w", err)
 	}
