@@ -33,23 +33,27 @@ func TestLatest(t *testing.T) {
 	}
 }
 
-func TestLatestErrors(t *testing.T) {
+func TestLatestBootstraps(t *testing.T) {
 	t.Run("no tags", func(t *testing.T) {
 		repo := testrepo.Init(t)
-		_, err := gittags.Latest(repo, "")
-		require.ErrorContains(t, err, "no tags found")
-	})
-
-	t.Run("pattern matches nothing", func(t *testing.T) {
-		repo := testrepo.Init(t, "v1.2.3")
-		_, err := gittags.Latest(repo, "v2.*")
-		require.ErrorContains(t, err, `no tags match pattern "v2.*"`)
+		got, err := gittags.Latest(repo, "")
+		require.NoError(t, err)
+		require.Equal(t, "v0.0.0", got)
 	})
 
 	t.Run("only non-semver tags", func(t *testing.T) {
 		repo := testrepo.Init(t, "release-foo")
-		_, err := gittags.Latest(repo, "")
-		require.ErrorContains(t, err, "no tags found")
+		got, err := gittags.Latest(repo, "")
+		require.NoError(t, err)
+		require.Equal(t, "v0.0.0", got)
+	})
+}
+
+func TestLatestErrors(t *testing.T) {
+	t.Run("pattern matches nothing", func(t *testing.T) {
+		repo := testrepo.Init(t, "v1.2.3")
+		_, err := gittags.Latest(repo, "v2.*")
+		require.ErrorContains(t, err, `no tags match pattern "v2.*"`)
 	})
 
 	t.Run("pattern matches only non-semver", func(t *testing.T) {

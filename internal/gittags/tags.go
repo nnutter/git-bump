@@ -3,7 +3,6 @@
 package gittags
 
 import (
-	"errors"
 	"fmt"
 	"path"
 
@@ -19,8 +18,9 @@ import (
 //
 // When pattern is not empty only tags matching it (in the sense of
 // git tag -l) are considered. Tags that are not strict semantic
-// versions are skipped; an error is returned when no usable tag
-// remains.
+// versions are skipped. When pattern is empty and no usable tag
+// remains, Latest returns v0.0.0 so callers can bump from scratch;
+// with a non-empty pattern the absence of a usable tag is an error.
 func Latest(repo *git.Repository, pattern string) (string, error) {
 	if _, err := path.Match(pattern, ""); err != nil {
 		return "", fmt.Errorf("invalid pattern %q: %w", pattern, err)
@@ -62,7 +62,7 @@ func Latest(repo *git.Repository, pattern string) (string, error) {
 	}
 	if !found {
 		if pattern == "" {
-			return "", errors.New("no tags found")
+			return bump.Version{}.String(), nil
 		}
 		return "", fmt.Errorf("no tags match pattern %q", pattern)
 	}
