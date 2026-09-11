@@ -53,3 +53,38 @@ func TestPatchWithoutPush(t *testing.T) {
 	_, err = repo.Tag("v1.2.4")
 	require.NoError(t, err, "new tag should exist locally")
 }
+
+func TestBootstrapWithoutTags(t *testing.T) {
+	testenv.Sterilize(t)
+
+	tests := []struct {
+		name string
+		args []string
+		want string
+	}{
+		{name: "patch", args: []string{"--patch", "--no-push"}, want: "v0.0.1\n"},
+		{name: "minor", args: []string{"--minor", "--no-push"}, want: "v0.1.0\n"},
+		{name: "major", args: []string{"--major", "--no-push"}, want: "v1.0.0\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := testrepo.Init(t)
+			work, err := repo.Worktree()
+			require.NoError(t, err)
+			previous, err := os.Getwd()
+			require.NoError(t, err)
+			require.NoError(t, os.Chdir(work.Filesystem.Root()))
+			t.Cleanup(func() {
+				require.NoError(t, os.Chdir(previous))
+			})
+
+			command := cmd.NewRootCommand()
+			command.SetArgs(tt.args)
+			output := &bytes.Buffer{}
+			command.SetOut(output)
+			require.NoError(t, command.Execute())
+			require.Equal(t, tt.want, output.String())
+		})
+	}
+}
