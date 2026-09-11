@@ -14,6 +14,15 @@ import (
 	"github.com/nnutter/git-bump/internal/bump"
 )
 
+// Open opens the repository at path.
+func Open(path string) (*git.Repository, error) {
+	repo, err := git.PlainOpen(path)
+	if err != nil {
+		return nil, fmt.Errorf("open git repository: %w", err)
+	}
+	return repo, nil
+}
+
 // Latest returns the highest semantic version tag in repo.
 //
 // When pattern is not empty only tags matching it (in the sense of

@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"charm.land/fang/v2"
-	"github.com/go-git/go-git/v5"
 	"github.com/spf13/cobra"
 
 	"github.com/nnutter/git-bump/internal/bump"
@@ -43,9 +42,9 @@ func NewRootCommand() *cobra.Command {
 			if count != 1 {
 				return errors.New("exactly one of --major, --minor, or --patch is required")
 			}
-			repo, err := git.PlainOpen(".")
+			repo, err := gittags.Open(".")
 			if err != nil {
-				return fmt.Errorf("open git repository: %w", err)
+				return err
 			}
 			latest, err := gittags.Latest(repo, pattern)
 			if err != nil {
