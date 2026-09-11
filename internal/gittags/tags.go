@@ -14,6 +14,19 @@ import (
 	"github.com/nnutter/git-bump/internal/bump"
 )
 
+// Open opens the repository at path.
+//
+// Linked worktrees (.git file plus commondir pointer) are resolved
+// through the shared directory so HEAD, tags, and remotes behave as
+// they do under the git CLI.
+func Open(path string) (*git.Repository, error) {
+	repo, err := git.PlainOpenWithOptions(path, &git.PlainOpenOptions{EnableDotGitCommonDir: true})
+	if err != nil {
+		return nil, fmt.Errorf("open git repository: %w", err)
+	}
+	return repo, nil
+}
+
 // Latest returns the highest semantic version tag in repo.
 //
 // When pattern is not empty only tags matching it (in the sense of

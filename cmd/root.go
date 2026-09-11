@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"charm.land/fang/v2"
-	"github.com/go-git/go-git/v5"
 	"github.com/spf13/cobra"
 
 	"github.com/nnutter/git-bump/internal/bump"
@@ -15,7 +14,11 @@ import (
 )
 
 // NewRootCommand builds the git-bump root command.
-func NewRootCommand() *cobra.Command {
+//
+// injectedVersion sets the reported version, normally the value of
+// -X main.version at link time. When empty the VCS revision from
+// build info is used.
+func NewRootCommand(injectedVersion string) *cobra.Command {
 	var major bool
 	var minor bool
 	var patch bool
@@ -23,8 +26,9 @@ func NewRootCommand() *cobra.Command {
 	var noPush bool
 
 	cmd := &cobra.Command{
-		Use:   "git-bump",
-		Short: "Bump the latest semver tag",
+		Use:     "git-bump",
+		Short:   "Bump the latest semver tag",
+		Version: resolveVersion(injectedVersion, buildSettings()),
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			var kind bump.Kind
 			count := 0
@@ -43,9 +47,9 @@ func NewRootCommand() *cobra.Command {
 			if count != 1 {
 				return errors.New("exactly one of --major, --minor, or --patch is required")
 			}
-			repo, err := git.PlainOpen(".")
+			repo, err := gittags.Open(".")
 			if err != nil {
-				return fmt.Errorf("open git repository: %w", err)
+				return err
 			}
 			latest, err := gittags.Latest(repo, pattern)
 			if err != nil {
@@ -78,6 +82,7 @@ func NewRootCommand() *cobra.Command {
 }
 
 // Execute runs the root command with Fang styling.
-func Execute() error {
-	return fang.Execute(context.Background(), NewRootCommand())
+func Execute(injectedVersion string) error {
+	root := NewRootCommand(injectedVersion)
+	return fang.Execute(context.Background(), root, fang.WithVersion(root.Version))
 }

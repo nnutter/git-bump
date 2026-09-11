@@ -23,7 +23,7 @@ func TestRequiresExactlyOneBumpFlag(t *testing.T) {
 		{"--major", "--minor", "--patch"},
 	}
 	for _, arg := range args {
-		command := cmd.NewRootCommand()
+		command := cmd.NewRootCommand("test")
 		command.SetArgs(arg)
 		err := command.Execute()
 		require.ErrorContains(t, err, "exactly one of --major, --minor, or --patch is required")
@@ -43,7 +43,7 @@ func TestPatchWithoutPush(t *testing.T) {
 		require.NoError(t, os.Chdir(previous))
 	})
 
-	command := cmd.NewRootCommand()
+	command := cmd.NewRootCommand("test")
 	command.SetArgs([]string{"--patch", "--no-push"})
 	output := &bytes.Buffer{}
 	command.SetOut(output)
@@ -79,7 +79,7 @@ func TestBootstrapWithoutTags(t *testing.T) {
 				require.NoError(t, os.Chdir(previous))
 			})
 
-			command := cmd.NewRootCommand()
+			command := cmd.NewRootCommand("test")
 			command.SetArgs(tt.args)
 			output := &bytes.Buffer{}
 			command.SetOut(output)

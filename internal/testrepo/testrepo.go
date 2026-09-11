@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/stretchr/testify/require"
 
@@ -43,4 +44,43 @@ func Init(t *testing.T, tags ...string) *git.Repository {
 		require.NoError(t, err)
 	}
 	return repo
+}
+
+// InitWorktree creates a repository with one commit and the given tags
+// plus a linked-worktree-style checkout of it.
+//
+// It returns the main repository and the worktree directory. The
+// worktree's .git file points at a gitdir holding HEAD and a commondir
+// pointer, mirroring `git worktree add` without shelling out to the
+// git CLI.
+func InitWorktree(t *testing.T, tags ...string) (*git.Repository, string) {
+	t.Helper()
+
+	main := Init(t, tags...)
+
+	remoteDir := t.TempDir()
+	_, err := git.PlainInit(remoteDir, true)
+	require.NoError(t, err)
+	_, err = main.CreateRemote(&config.RemoteConfig{Name: "origin", URLs: []string{remoteDir}})
+	require.NoError(t, err)
+
+	work, err := main.Worktree()
+	require.NoError(t, err)
+	mainGitDir := filepath.Join(work.Filesystem.Root(), ".git")
+
+	head, err := main.Head()
+	require.NoError(t, err)
+
+	workDir := t.TempDir()
+	wtGitDir := filepath.Join(workDir, "gitdir")
+	require.NoError(t, os.MkdirAll(wtGitDir, 0o755))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(wtGitDir, "HEAD"),
+		[]byte("ref: "+head.Name().String()+"\n"),
+		0o600,
+	))
+	require.NoError(t, os.WriteFile(filepath.Join(wtGitDir, "commondir"), []byte(mainGitDir+"\n"), 0o600))
+	require.NoError(t, os.WriteFile(filepath.Join(workDir, ".git"), []byte("gitdir: "+wtGitDir+"\n"), 0o600))
+
+	return main, workDir
 }
