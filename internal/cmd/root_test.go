@@ -148,3 +148,12 @@ func TestReleaseFailure(t *testing.T) {
 	command.SetOut(&bytes.Buffer{})
 	require.ErrorContains(t, command.Execute(), `create draft release for "v1.2.4"`)
 }
+
+func TestVersionFlag(t *testing.T) {
+	command := cmd.NewRootCommand("v9.9.9")
+	command.SetArgs([]string{"--version"})
+	output := &bytes.Buffer{}
+	command.SetOut(output)
+	require.NoError(t, command.Execute())
+	require.Contains(t, output.String(), "v9.9.9")
+}
