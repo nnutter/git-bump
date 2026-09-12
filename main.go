@@ -4,7 +4,7 @@ package main
 import (
 	"os"
 
-	"github.com/nnutter/git-bump/cmd"
+	"github.com/nnutter/git-bump/internal/cmd"
 )
 
 // version is the release version, set at link time:

@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/nnutter/git-bump/cmd"
+	"github.com/nnutter/git-bump/internal/cmd"
 )
 
 func TestVersionFlag(t *testing.T) {

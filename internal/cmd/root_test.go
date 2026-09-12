@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/nnutter/git-bump/cmd"
+	"github.com/nnutter/git-bump/internal/cmd"
 	"github.com/nnutter/git-bump/internal/testenv"
 	"github.com/nnutter/git-bump/internal/testrepo"
 )
