@@ -2,11 +2,9 @@
 package cmd
 
 import (
-	"context"
 	"errors"
 	"fmt"
 
-	"charm.land/fang/v2"
 	"github.com/spf13/cobra"
 
 	"github.com/nnutter/git-bump/internal/bump"
@@ -91,10 +89,4 @@ func NewRootCommand(injectedVersion string) *cobra.Command {
 	cmd.Flags().BoolVar(&release, "release", false, "Create a draft GitHub release for the new tag")
 
 	return cmd
-}
-
-// Execute runs the root command with Fang styling.
-func Execute(injectedVersion string) error {
-	root := NewRootCommand(injectedVersion)
-	return fang.Execute(context.Background(), root, fang.WithVersion(root.Version))
 }
