@@ -11,18 +11,23 @@ import (
 	"github.com/nnutter/git-bump/internal/gittags"
 )
 
+// options holds the flag values for the root command.
+type options struct {
+	major   bool
+	minor   bool
+	patch   bool
+	pattern string
+	noPush  bool
+	release bool
+}
+
 // NewRootCommand builds the git-bump root command.
 //
 // injectedVersion sets the reported version, normally the value of
 // -X main.version at link time. When empty the VCS revision from
 // build info is used.
 func NewRootCommand(injectedVersion string) *cobra.Command {
-	var major bool
-	var minor bool
-	var patch bool
-	var pattern string
-	var noPush bool
-	var release bool
+	var opts options
 
 	runE := func(cmd *cobra.Command, _ []string) error {
 		var kind bump.Kind
@@ -31,9 +36,9 @@ func NewRootCommand(injectedVersion string) *cobra.Command {
 			set  bool
 			kind bump.Kind
 		}{
-			{major, bump.Major{}},
-			{minor, bump.Minor{}},
-			{patch, bump.Patch{}},
+			{opts.major, bump.Major{}},
+			{opts.minor, bump.Minor{}},
+			{opts.patch, bump.Patch{}},
 		} {
 			if flag.set {
 				kind, count = flag.kind, count+1
@@ -46,7 +51,7 @@ func NewRootCommand(injectedVersion string) *cobra.Command {
 		if err != nil {
 			return err
 		}
-		latest, err := gittags.Latest(repo, pattern)
+		latest, err := gittags.Latest(repo, opts.pattern)
 		if err != nil {
 			return err
 		}
@@ -57,7 +62,7 @@ func NewRootCommand(injectedVersion string) *cobra.Command {
 		if err := gittags.Create(repo, next); err != nil {
 			return err
 		}
-		if !noPush {
+		if !opts.noPush {
 			if err := gittags.Push(repo, next); err != nil {
 				return err
 			}
@@ -65,7 +70,7 @@ func NewRootCommand(injectedVersion string) *cobra.Command {
 		if _, err := fmt.Fprintln(cmd.OutOrStdout(), next); err != nil {
 			return err
 		}
-		if release {
+		if opts.release {
 			url, err := gittags.CreateDraftRelease(repo, next)
 			if err != nil {
 				return err
@@ -83,12 +88,12 @@ func NewRootCommand(injectedVersion string) *cobra.Command {
 		RunE:    runE,
 	}
 
-	cmd.Flags().BoolVar(&major, "major", false, "Bump the major version")
-	cmd.Flags().BoolVar(&minor, "minor", false, "Bump the minor version")
-	cmd.Flags().BoolVar(&patch, "patch", false, "Bump the patch version")
-	cmd.Flags().StringVar(&pattern, "pattern", "", "Only consider tags matching `git tag -l <pattern>`")
-	cmd.Flags().BoolVar(&noPush, "no-push", false, "Do not push the new tag")
-	cmd.Flags().BoolVar(&release, "release", false, "Create a draft GitHub release for the new tag")
+	cmd.Flags().BoolVar(&opts.major, "major", false, "Bump the major version")
+	cmd.Flags().BoolVar(&opts.minor, "minor", false, "Bump the minor version")
+	cmd.Flags().BoolVar(&opts.patch, "patch", false, "Bump the patch version")
+	cmd.Flags().StringVar(&opts.pattern, "pattern", "", "Only consider tags matching `git tag -l <pattern>`")
+	cmd.Flags().BoolVar(&opts.noPush, "no-push", false, "Do not push the new tag")
+	cmd.Flags().BoolVar(&opts.release, "release", false, "Create a draft GitHub release for the new tag")
 
 	return cmd
 }
