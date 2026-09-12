@@ -9,7 +9,7 @@ import (
 	"github.com/nnutter/git-bump/internal/testenv"
 )
 
-func TestBump(t *testing.T) {
+func TestTag(t *testing.T) {
 	testenv.Sterilize(t)
 
 	tests := []struct {
@@ -29,14 +29,14 @@ func TestBump(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := bump.Bump(tt.tag, tt.kind)
+			got, err := bump.Tag(tt.tag, tt.kind)
 			require.NoError(t, err)
 			require.Equal(t, tt.want, got)
 		})
 	}
 }
 
-func TestBumpInvalid(t *testing.T) {
+func TestTagInvalid(t *testing.T) {
 	testenv.Sterilize(t)
 
 	tests := []struct {
@@ -56,17 +56,17 @@ func TestBumpInvalid(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := bump.Bump(tt.tag, tt.kind)
+			_, err := bump.Tag(tt.tag, tt.kind)
 			require.Error(t, err)
 		})
 	}
 }
 
-func TestBumpNilKindPanics(t *testing.T) {
+func TestTagNilKindPanics(t *testing.T) {
 	testenv.Sterilize(t)
 
 	require.Panics(t, func() {
-		_, _ = bump.Bump("v1.2.3", nil)
+		_, _ = bump.Tag("v1.2.3", nil)
 	})
 }
 

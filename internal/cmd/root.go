@@ -56,7 +56,7 @@ func NewRootCommand(injectedVersion string) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			next, err := bump.Bump(latest, kind)
+			next, err := bump.Tag(latest, kind)
 			if err != nil {
 				return err
 			}

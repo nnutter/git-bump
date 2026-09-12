@@ -4,8 +4,8 @@
 // and pre-release or build metadata is rejected.
 package bump
 
-// Bump returns the tag that follows tag after applying kind.
-func Bump(tag string, kind Kind) (string, error) {
+// Tag returns the tag that follows tag after applying kind.
+func Tag(tag string, kind Kind) (string, error) {
 	version, err := Parse(tag)
 	if err != nil {
 		return "", err
