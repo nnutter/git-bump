@@ -21,6 +21,58 @@ type options struct {
 	release bool
 }
 
+func (o *options) runE(cmd *cobra.Command, _ []string) error {
+	var kind bump.Kind
+	count := 0
+	for _, flag := range []struct {
+		set  bool
+		kind bump.Kind
+	}{
+		{o.major, bump.Major{}},
+		{o.minor, bump.Minor{}},
+		{o.patch, bump.Patch{}},
+	} {
+		if flag.set {
+			kind, count = flag.kind, count+1
+		}
+	}
+	if count != 1 {
+		return errors.New("exactly one of --major, --minor, or --patch is required")
+	}
+	repo, err := gittags.Open(".")
+	if err != nil {
+		return err
+	}
+	latest, err := gittags.Latest(repo, o.pattern)
+	if err != nil {
+		return err
+	}
+	next, err := bump.Tag(latest, kind)
+	if err != nil {
+		return err
+	}
+	if err := gittags.Create(repo, next); err != nil {
+		return err
+	}
+	if !o.noPush {
+		if err := gittags.Push(repo, next); err != nil {
+			return err
+		}
+	}
+	if _, err := fmt.Fprintln(cmd.OutOrStdout(), next); err != nil {
+		return err
+	}
+	if o.release {
+		url, err := gittags.CreateDraftRelease(repo, next)
+		if err != nil {
+			return err
+		}
+		_, err = fmt.Fprintln(cmd.OutOrStdout(), url)
+		return err
+	}
+	return nil
+}
+
 // NewRootCommand builds the git-bump root command.
 //
 // injectedVersion sets the reported version, normally the value of
@@ -29,63 +81,11 @@ type options struct {
 func NewRootCommand(injectedVersion string) *cobra.Command {
 	var opts options
 
-	runE := func(cmd *cobra.Command, _ []string) error {
-		var kind bump.Kind
-		count := 0
-		for _, flag := range []struct {
-			set  bool
-			kind bump.Kind
-		}{
-			{opts.major, bump.Major{}},
-			{opts.minor, bump.Minor{}},
-			{opts.patch, bump.Patch{}},
-		} {
-			if flag.set {
-				kind, count = flag.kind, count+1
-			}
-		}
-		if count != 1 {
-			return errors.New("exactly one of --major, --minor, or --patch is required")
-		}
-		repo, err := gittags.Open(".")
-		if err != nil {
-			return err
-		}
-		latest, err := gittags.Latest(repo, opts.pattern)
-		if err != nil {
-			return err
-		}
-		next, err := bump.Tag(latest, kind)
-		if err != nil {
-			return err
-		}
-		if err := gittags.Create(repo, next); err != nil {
-			return err
-		}
-		if !opts.noPush {
-			if err := gittags.Push(repo, next); err != nil {
-				return err
-			}
-		}
-		if _, err := fmt.Fprintln(cmd.OutOrStdout(), next); err != nil {
-			return err
-		}
-		if opts.release {
-			url, err := gittags.CreateDraftRelease(repo, next)
-			if err != nil {
-				return err
-			}
-			_, err = fmt.Fprintln(cmd.OutOrStdout(), url)
-			return err
-		}
-		return nil
-	}
-
 	cmd := &cobra.Command{
 		Use:     "git-bump",
 		Short:   "Bump the latest semver tag",
 		Version: resolveVersion(injectedVersion, buildSettings()),
-		RunE:    runE,
+		RunE:    opts.runE,
 	}
 
 	cmd.Flags().BoolVar(&opts.major, "major", false, "Bump the major version")
