@@ -24,6 +24,7 @@ func NewRootCommand(injectedVersion string) *cobra.Command {
 	var patch bool
 	var pattern string
 	var noPush bool
+	var release bool
 
 	cmd := &cobra.Command{
 		Use:     "git-bump",
@@ -67,8 +68,18 @@ func NewRootCommand(injectedVersion string) *cobra.Command {
 					return err
 				}
 			}
-			_, err = fmt.Fprintln(cmd.OutOrStdout(), next)
-			return err
+			if _, err := fmt.Fprintln(cmd.OutOrStdout(), next); err != nil {
+				return err
+			}
+			if release {
+				url, err := gittags.CreateDraftRelease(repo, next)
+				if err != nil {
+					return err
+				}
+				_, err = fmt.Fprintln(cmd.OutOrStdout(), url)
+				return err
+			}
+			return nil
 		},
 	}
 
@@ -77,6 +88,7 @@ func NewRootCommand(injectedVersion string) *cobra.Command {
 	cmd.Flags().BoolVar(&patch, "patch", false, "Bump the patch version")
 	cmd.Flags().StringVar(&pattern, "pattern", "", "Only consider tags matching `git tag -l <pattern>`")
 	cmd.Flags().BoolVar(&noPush, "no-push", false, "Do not push the new tag")
+	cmd.Flags().BoolVar(&release, "release", false, "Create a draft GitHub release for the new tag")
 
 	return cmd
 }
