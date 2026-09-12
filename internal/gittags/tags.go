@@ -1,13 +1,14 @@
-// Package gittags reads and writes repository tags through go-git
-// instead of shelling out to the git CLI.
+// Package gittags reads and writes repository tags through go-git.
+// Push shells out to the git CLI so authentication (SSH agent,
+// credential helpers such as gh) behaves like a manual push.
 package gittags
 
 import (
 	"fmt"
+	"os/exec"
 	"path"
 
 	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing"
 	"golang.org/x/mod/semver"
 
@@ -97,11 +98,20 @@ func Create(repo *git.Repository, tag string) error {
 	return nil
 }
 
-// Push pushes a single tag to origin.
+// Push pushes a single tag to origin with the git CLI so SSH agent,
+// ssh config, and credential helpers are honored. go-git pushes
+// anonymously, which GitHub rejects with "No anonymous write access"
+// on SSH remotes.
 func Push(repo *git.Repository, tag string) error {
-	ref := config.RefSpec("refs/tags/" + tag + ":refs/tags/" + tag)
-	if err := repo.Push(&git.PushOptions{RefSpecs: []config.RefSpec{ref}}); err != nil {
-		return fmt.Errorf("push tag %q: %w", tag, err)
+	work, err := repo.Worktree()
+	if err != nil {
+		return fmt.Errorf("push tag %q: resolve worktree: %w", tag, err)
+	}
+	ref := "refs/tags/" + tag + ":refs/tags/" + tag
+	push := exec.Command("git", "push", "origin", ref)
+	push.Dir = work.Filesystem.Root()
+	if out, err := push.CombinedOutput(); err != nil {
+		return fmt.Errorf("push tag %q: %w: %s", tag, err, out)
 	}
 	return nil
 }
