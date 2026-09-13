@@ -25,6 +25,7 @@ func NewRootCommand(injectedVersion string) *cobra.Command {
 	cmd.Flags().StringVar(&opts.pattern, "pattern", "", "Only consider tags matching `git tag -l <pattern>`")
 	cmd.Flags().BoolVar(&opts.noPush, "no-push", false, "Do not push the new tag")
 	cmd.Flags().BoolVar(&opts.release, "release", false, "Create a draft GitHub release for the new tag")
+	cmd.Flags().BoolVar(&opts.noOpen, "no-open", false, "Do not open the draft release URL in the browser")
 
 	return cmd
 }

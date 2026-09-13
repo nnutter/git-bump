@@ -19,6 +19,7 @@ type options struct {
 	pattern string
 	noPush  bool
 	release bool
+	noOpen  bool
 }
 
 func (o *options) runE(cmd *cobra.Command, _ []string) error {
@@ -67,8 +68,17 @@ func (o *options) runE(cmd *cobra.Command, _ []string) error {
 		if err != nil {
 			return err
 		}
-		_, err = fmt.Fprintln(cmd.OutOrStdout(), url)
-		return err
+		if _, err := fmt.Fprintln(cmd.OutOrStdout(), url); err != nil {
+			return err
+		}
+		if !o.noOpen {
+			if err := gittags.OpenURL(url); err != nil {
+				if _, err := fmt.Fprintf(cmd.ErrOrStderr(), "warning: could not open browser: %v\n", err); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
 	}
 	return nil
 }
