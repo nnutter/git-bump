@@ -2,9 +2,12 @@
 package main
 
 import (
+	"context"
 	"os"
 
-	"github.com/nnutter/git-bump/cmd"
+	"charm.land/fang/v2"
+
+	"github.com/nnutter/git-bump/internal/cmd"
 )
 
 // version is the release version, set at link time:
@@ -16,7 +19,8 @@ import (
 var version string
 
 func main() {
-	if err := cmd.Execute(version); err != nil {
+	root := cmd.NewRootCommand(version)
+	if err := fang.Execute(context.Background(), root, fang.WithVersion(root.Version)); err != nil {
 		os.Exit(1)
 	}
 }

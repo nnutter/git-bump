@@ -5,7 +5,7 @@ Bump the latest semver tag in the current repository.
 ## Usage
 
 ```sh
-git-bump --major|--minor|--patch [--pattern <glob>] [--no-push] [--release]
+git-bump --major|--minor|--patch [--pattern <glob>] [--no-push] [--release] [--no-open]
 ```
 
 Exactly one of `--major`, `--minor`, or `--patch` is required.
@@ -17,7 +17,9 @@ bump, creates the new tag, prints it, and pushes it to `origin`.
   are skipped.
 - `--no-push` creates the tag locally without pushing it.
 - `--release` creates a draft GitHub release for the new tag with
-  `gh` and prints its URL after the tag.
+  `gh`, prints its URL after the tag, and opens it in the browser
+  with `open` (or `xdg-open` as a fallback) when available.
+  `--no-open` skips opening the draft release URL.
 
 ## Examples
 
