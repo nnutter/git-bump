@@ -1,5 +1,5 @@
 [tools]
-go = "1.27.0"
+go = "1.27.3"
 hk = "2.8.0"
 "github:swanysimon/mdlint" = "0.3.24"
 "ubi:noirbizarre/git-tpl" = "0.13.0"

@@ -1,6 +1,6 @@
 module github.com/nnutter/git-bump
 
-go 1.27.0
+go 1.27.3
 
 tool (
 	github.com/Antonboom/testifylint
