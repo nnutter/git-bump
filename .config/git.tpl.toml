@@ -1,0 +1,18 @@
+# git-tpl — https://noirbizarre.github.io/git-tpl/configuration/
+#
+# This file is versioned with the project. Edit an answer and run
+# `git tpl update` to re-render the template with it.
+
+[template]
+source = "git@github.com:nnutter/go-template"
+
+[answers]
+copyright_holder = "Nathan Nutter"
+copyright_year = "2026"
+formula_name = "git-bump"
+go_version = "1.27.3"
+module_path = "github.com/nnutter/git-bump"
+project_name = "git-bump"
+tap_owner = "nnutter"
+tap_repository = "homebrew-tap"
+with_homebrew = true
